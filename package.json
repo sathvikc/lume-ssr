@@ -1,0 +1,7 @@
+{
+  "name": "lume-ssr",
+  "version": "1.0.0",
+  "description": "Minimal JSX-to-HTML rendering primitive.",
+  "type": "module",
+  "main": "src/index.js"
+}
