@@ -29,7 +29,7 @@ Lume-SSR allows you to render your HTML on the server without buying into a mass
 - 🏗 **Universal**: Runs in Node.js, Deno, Bun, Cloudflare Workers.
 - ⚡ **Fast**: Zero overhead abstraction. It's just function calls.
 - 🎯 **Focused**: No built-in router. No data fetching layer. No magic.
-- 🧩 **Modular**: Compiles JSX to clean HTML strings. Pair it with **[Lume-JS](https://github.com/lume/lume-js)** for interactivity, or **htmx**, or **Alpine**, or **Vanilla JS**.
+- 🧩 **Modular**: Compiles JSX to clean HTML strings. Pair it with **[Lume-JS](https://github.com/sathvikc/lume-js)** for interactivity, or **htmx**, or **Alpine**, or **Vanilla JS**.
 
 ## Installation
 
