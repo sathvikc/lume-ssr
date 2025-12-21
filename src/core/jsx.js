@@ -6,12 +6,22 @@ export function h(type, props, ...children) {
     );
 
     if (typeof type === 'function') {
-        return type({ ...props, children: flattenedChildren });
+        const result = type({ ...props, children: flattenedChildren });
+        return result;
     }
 
-    const content = flattenedChildren.map(c => 
-        c instanceof SafeString ? c.toString() : escapeHtml(String(c))
-    ).join('');
-    
+    const formatChild = (child) => {
+        if (child instanceof SafeString) return child.toString();
+        return escapeHtml(String(child));
+    };
+
+    if (flattenedChildren.some(c => c instanceof Promise)) {
+        return Promise.all(flattenedChildren).then(resolved => {
+            const content = resolved.map(formatChild).join('');
+            return new SafeString(`<${type}>${content}</${type}>`);
+        });
+    }
+
+    const content = flattenedChildren.map(child => formatChild(child)).join('');
     return new SafeString(`<${type}>${content}</${type}>`);
 }
