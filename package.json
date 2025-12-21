@@ -10,6 +10,9 @@
     "./render": "./src/core/render.js",
     "./utils": "./src/core/utils.js"
   },
+  "files": [
+    "src"
+  ],
   "scripts": {
     "clean": "rm -rf dist",
     "build:examples": "npm run clean && tsx scripts/build.jsx",
