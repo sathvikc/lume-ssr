@@ -1,7 +1,7 @@
 node_modules
 dist
 .DS_Store
-reconstruct_history.sh
 .env
 coverage
 examples/02-todo-lume/public/client.bundle.js
+archive
