@@ -206,7 +206,7 @@ const indexHtml = renderToString(
     </ul>
   </BlogLayout>
 );
-fs.writeFileSync(path.join(outDir, 'index.html'), indexHtml);
+fs.writeFileSync(path.join(outDir, 'index.html'), `<!DOCTYPE html>\n${indexHtml}`);
 console.log('✓ Generated index.html');
 
 // Generate individual post pages
@@ -225,7 +225,7 @@ posts.forEach(post => {
       </article>
     </BlogLayout>
   );
-  fs.writeFileSync(path.join(outDir, `${post.slug}.html`), postHtml);
+  fs.writeFileSync(path.join(outDir, `${post.slug}.html`), `<!DOCTYPE html>\n${postHtml}`);
   console.log(`✓ Generated ${post.slug}.html`);
 });
 
@@ -244,7 +244,7 @@ const aboutHtml = renderToString(
     <a href="index.html">← Back to home</a>
   </BlogLayout>
 );
-fs.writeFileSync(path.join(outDir, 'about.html'), aboutHtml);
+fs.writeFileSync(path.join(outDir, 'about.html'), `<!DOCTYPE html>\n${aboutHtml}`);
 console.log('✓ Generated about.html');
 
 console.log(`\n✨ Blog generated to ${outDir}/`);

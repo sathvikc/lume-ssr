@@ -4,13 +4,40 @@
   "description": "Infrastructure for the web. A minimal, standards-based JSX-to-HTML rendering primitive.",
   "type": "module",
   "main": "src/index.js",
+  "types": "types/index.d.ts",
+  "sideEffects": false,
   "exports": {
-    ".": "./src/index.js",
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./jsx-runtime": {
+      "types": "./types/jsx-runtime.d.ts",
+      "default": "./src/jsx-runtime.js"
+    },
+    "./jsx-dev-runtime": {
+      "types": "./types/jsx-dev-runtime.d.ts",
+      "default": "./src/jsx-dev-runtime.js"
+    },
     "./jsx": "./src/core/jsx.js",
     "./render": "./src/core/render.js",
     "./utils": "./src/core/utils.js"
   },
+  "files": [
+    "src",
+    "types",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sathvikc/lume-ssr.git"
+  },
   "scripts": {
+    "test": "node --test",
     "clean": "rm -rf dist",
     "build:examples": "npm run clean && tsx scripts/build.jsx",
     "serve:examples": "npx http-server dist -p 8080 -o",

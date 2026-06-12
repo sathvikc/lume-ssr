@@ -3,7 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { renderToString, h, Fragment } from '../src/index.js';
+import { renderToString, h, Fragment, serializeState } from '../src/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -143,7 +143,7 @@ const Dashboard = ({ isDevMode = false }) => {
 // Build dashboard
 function buildDashboard() {
   const html = renderToString(<Dashboard isDevMode={false} />);
-  fs.writeFileSync(path.join(distDir, 'index.html'), html);
+  fs.writeFileSync(path.join(distDir, 'index.html'), `<!DOCTYPE html>\n${html}`);
   console.log('✓ Built dashboard');
 }
 
@@ -171,7 +171,7 @@ async function buildBasicExample() {
   
   const exampleDir = path.join(distDir, '01-basic');
   fs.mkdirSync(exampleDir, { recursive: true });
-  fs.writeFileSync(path.join(exampleDir, 'index.html'), html);
+  fs.writeFileSync(path.join(exampleDir, 'index.html'), `<!DOCTYPE html>\n${html}`);
   
   console.log('✓ Built 01-basic');
 }
@@ -194,7 +194,7 @@ async function buildLumeExample() {
   const fullHtml = html.replace(
     '</body>',
     `
-      <script>window.__STATE__ = ${JSON.stringify(state)};</script>
+      ${serializeState(state)}
       <script type="module" src="client.js"></script>
     </body>
     `
@@ -202,7 +202,7 @@ async function buildLumeExample() {
   
   const exampleDir = path.join(distDir, '02-todo-lume');
   fs.mkdirSync(exampleDir, { recursive: true });
-  fs.writeFileSync(path.join(exampleDir, 'index.html'), fullHtml);
+  fs.writeFileSync(path.join(exampleDir, 'index.html'), `<!DOCTYPE html>\n${fullHtml}`);
   
   // Copy client.js
   fs.copyFileSync(
@@ -441,7 +441,7 @@ async function buildStaticExample() {
   
   pages.forEach(page => {
     const html = renderToString(<Page title={page.title} content={page.content} />);
-    fs.writeFileSync(path.join(exampleDistDir, page.name), html);
+    fs.writeFileSync(path.join(exampleDistDir, page.name), `<!DOCTYPE html>\n${html}`);
   });
   
   console.log('✓ Built 05-static');
@@ -624,7 +624,7 @@ async function buildBlogExample() {
       </ul>
     </BlogLayout>
   );
-  fs.writeFileSync(path.join(exampleDistDir, 'index.html'), indexHtml);
+  fs.writeFileSync(path.join(exampleDistDir, 'index.html'), `<!DOCTYPE html>\n${indexHtml}`);
   
   // Generate post pages
   posts.forEach(post => {
@@ -642,7 +642,7 @@ async function buildBlogExample() {
         </article>
       </BlogLayout>
     );
-    fs.writeFileSync(path.join(exampleDistDir, `${post.slug}.html`), postHtml);
+    fs.writeFileSync(path.join(exampleDistDir, `${post.slug}.html`), `<!DOCTYPE html>\n${postHtml}`);
   });
   
   // Generate about page
@@ -660,7 +660,7 @@ async function buildBlogExample() {
       <a href="index.html">← Back to home</a>
     </BlogLayout>
   );
-  fs.writeFileSync(path.join(exampleDistDir, 'about.html'), aboutHtml);
+  fs.writeFileSync(path.join(exampleDistDir, 'about.html'), `<!DOCTYPE html>\n${aboutHtml}`);
   
   console.log('✓ Built 06-blog');
 }

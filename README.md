@@ -37,6 +37,23 @@ Lume-SSR allows you to render your HTML on the server without buying into a mass
 npm install lume-ssr
 ```
 
+## Setup
+
+Point your build tool at the automatic JSX runtime — no pragma comments needed:
+
+```jsonc
+// tsconfig.json / jsconfig.json
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "lume-ssr"
+  }
+}
+```
+
+TypeScript types ship with the package. The classic pragma
+(`/** @jsx h */`) also works.
+
 ## Usage
 
 Lume-SSR is just a function.
@@ -69,6 +86,25 @@ app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>${html}`);
 });
 ```
+
+### With client-side state (hydration)
+
+Pass server state to any client library safely — `serializeState` escapes the
+payload so user data can't break out of the script tag:
+
+```javascript
+import { renderToString, serializeState } from 'lume-ssr';
+
+const html = renderToString(<App todos={todos} />);
+res.send(`<!DOCTYPE html>
+  ${html}
+  ${serializeState({ todos })}
+  <script type="module" src="/client.js"></script>
+`);
+```
+
+On the client, pair it with **[Lume-JS](https://github.com/sathvikc/lume-js)**
+(`hydrateState()` + `bindDom()`), htmx, Alpine, or vanilla JS.
 
 ### With Static Site Generation (SSG)
 

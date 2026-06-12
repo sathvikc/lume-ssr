@@ -3,7 +3,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { renderToString, h, Fragment } from '../src/index.js';
+import { renderToString, h, Fragment, serializeState } from '../src/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -210,7 +210,7 @@ app.get('/02-todo-lume', async (req, res) => {
     const fullHtml = html.replace(
         '</body>',
         `
-      <script>window.__STATE__ = ${JSON.stringify(state)};</script>
+      ${serializeState(state)}
       <script type="module" src="/02-todo-lume/public/client.js"></script>
     </body>
     `
