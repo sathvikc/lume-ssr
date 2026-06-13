@@ -16,6 +16,9 @@ function formatChild(child) {
     if (typeof child === 'string') {
         return escapeHtml(child);
     }
+    if (typeof child === 'number') {
+        return '' + child;
+    }
     if (child === null || child === undefined || typeof child === 'boolean') {
         return '';
     }
@@ -64,7 +67,9 @@ export function renderChildren(children) {
  * @returns {SafeString|Promise<SafeString>} HTML string wrapped in SafeString
  */
 export function h(type, props, ...children) {
-    // Flatten (only when needed) and filter out null/undefined/boolean
+    // Flatten only when an array child exists (e.g. items.map). Flattening is
+    // load-bearing for async: it hoists nested Promises to the top level
+    // where renderChildren can await them.
     let flattenedChildren = children;
     for (let i = 0; i < flattenedChildren.length; i++) {
         if (Array.isArray(flattenedChildren[i])) {
@@ -72,13 +77,15 @@ export function h(type, props, ...children) {
             break;
         }
     }
-    flattenedChildren = flattenedChildren.filter(c =>
-        c !== null && c !== undefined && c !== false && c !== true
-    );
 
-    // If type is a function (component), call it
+    // If type is a function (component), call it.
+    // Components get the filtered-children contract (no null/boolean holes);
+    // plain elements skip the filter - formatChild renders those as ''.
     if (typeof type === 'function') {
-        return type({ ...props, children: flattenedChildren });
+        const filtered = flattenedChildren.filter(c =>
+            c !== null && c !== undefined && c !== false && c !== true
+        );
+        return type({ ...props, children: filtered });
     }
 
     if (typeof type === 'string') {
