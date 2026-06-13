@@ -34,13 +34,29 @@ export function escapeHtml(str) {
     if (!ESCAPE_TEST.test(str)) {
         return str;
     }
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+    // Single pass: copy clean spans, splice in entities
+    let out = '';
+    let last = 0;
+    for (let i = 0; i < str.length; i++) {
+        let entity;
+        switch (str.charCodeAt(i)) {
+            case 38: entity = '&amp;'; break;   // &
+            case 60: entity = '&lt;'; break;    // <
+            case 62: entity = '&gt;'; break;    // >
+            case 34: entity = '&quot;'; break;  // "
+            case 39: entity = '&#039;'; break;  // '
+            default: continue;
+        }
+        out += str.slice(last, i) + entity;
+        last = i + 1;
+    }
+    return out + str.slice(last);
 }
+
+const SELF_CLOSING_TAGS = new Set([
+    'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+    'link', 'meta', 'param', 'source', 'track', 'wbr'
+]);
 
 /**
  * Check if HTML tag is self-closing
@@ -48,11 +64,7 @@ export function escapeHtml(str) {
  * @returns {boolean}
  */
 export function isSelfClosing(tag) {
-    const selfClosingTags = new Set([
-        'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
-        'link', 'meta', 'param', 'source', 'track', 'wbr'
-    ]);
-    return selfClosingTags.has(tag.toLowerCase());
+    return SELF_CLOSING_TAGS.has(tag) || SELF_CLOSING_TAGS.has(tag.toLowerCase());
 }
 
 /**
@@ -102,11 +114,11 @@ export function formatAttributes(props) {
         return '';
     }
 
-    const attributes = [];
+    let out = '';
 
-    for (const [key, value] of Object.entries(props)) {
-        // Skip children, key, ref
-        if (key === 'children' || key === 'key' || key === 'ref') {
+    for (const key of Object.keys(props)) {
+        // Skip children, key, ref and the raw-HTML escape hatch
+        if (key === 'children' || key === 'key' || key === 'ref' || key === 'dangerouslySetInnerHTML') {
             continue;
         }
 
@@ -115,23 +127,18 @@ export function formatAttributes(props) {
             continue;
         }
 
-        // Handle className -> class
-        if (key === 'className') {
-            attributes.push(`class="${escapeHtml(String(value))}"`);
-            continue;
-        }
+        const value = props[key];
 
-        // Handle htmlFor -> for
-        if (key === 'htmlFor') {
-            attributes.push(`for="${escapeHtml(String(value))}"`);
-            continue;
-        }
-
-        // Handle style object
-        if (key === 'style' && typeof value === 'object') {
-            const styleString = formatStyle(value);
-            if (styleString) {
-                attributes.push(`style="${styleString}"`);
+        // Fast path: plain string values on safe names
+        if (typeof value === 'string') {
+            if (key === 'className') {
+                out += ` class="${escapeHtml(value)}"`;
+            } else if (key === 'htmlFor') {
+                out += ` for="${escapeHtml(value)}"`;
+            } else if (key.charCodeAt(0) === 111 && key.charCodeAt(1) === 110) { // 'on*'
+                out += ` ${key.toLowerCase()}="${escapeHtml(value)}"`;
+            } else {
+                out += ` ${key}="${escapeHtml(value)}"`;
             }
             continue;
         }
@@ -142,26 +149,38 @@ export function formatAttributes(props) {
         // Other booleans use the shorthand: present if true, omitted if false.
         if (typeof value === 'boolean') {
             if (key.startsWith('aria-') || ENUMERATED_ATTRS.has(key)) {
-                attributes.push(`${key}="${value}"`);
-            } else if (value) {
-                attributes.push(key);
+                out += ` ${key}="${value}"`;
+            } else if (value && !(key.charCodeAt(0) === 111 && key.charCodeAt(1) === 110)) {
+                out += ` ${key}`;
             }
             continue;
         }
 
-        // Handle event handlers (convert to string for SSR if it's a string, otherwise ignore functions)
-        if (key.startsWith('on')) {
-            if (typeof value === 'string') {
-                attributes.push(`${key.toLowerCase()}="${escapeHtml(value)}"`);
+        // Handle style object
+        if (key === 'style' && typeof value === 'object') {
+            const styleString = formatStyle(value);
+            if (styleString) {
+                out += ` style="${styleString}"`;
             }
+            continue;
+        }
+
+        // Event handlers: only string values render (functions don't serialize)
+        if (key.charCodeAt(0) === 111 && key.charCodeAt(1) === 110) { // 'on*'
             continue;
         }
 
         // Handle other attributes
         if (value !== null && value !== undefined) {
-            attributes.push(`${key}="${escapeHtml(String(value))}"`);
+            if (key === 'className') {
+                out += ` class="${escapeHtml(String(value))}"`;
+            } else if (key === 'htmlFor') {
+                out += ` for="${escapeHtml(String(value))}"`;
+            } else {
+                out += ` ${key}="${escapeHtml(String(value))}"`;
+            }
         }
     }
 
-    return attributes.length > 0 ? ' ' + attributes.join(' ') : '';
+    return out;
 }
