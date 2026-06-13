@@ -1,5 +1,5 @@
 import { formatAttributes, isSelfClosing, escapeHtml, SafeString } from './utils.js';
-import { checkA11y } from './a11y.js';
+import { registeredPlugins, applyElementPlugins } from './plugins.js';
 
 // Tag names must look like real HTML/SVG/custom-element tags. Case is
 // preserved so SVG tags like <feGaussianBlur> render correctly.
@@ -82,11 +82,17 @@ export function h(type, props, ...children) {
     }
 
     if (typeof type === 'string') {
+        // Element plugins may replace tag, props or children
+        if (registeredPlugins.length) {
+            const result = applyElementPlugins(type, props, flattenedChildren);
+            type = result.tag;
+            props = result.props;
+            flattenedChildren = result.children;
+        }
+
         if (!VALID_TAG_NAME.test(type)) {
             throw new Error(`Invalid tag name: ${JSON.stringify(type)}`);
         }
-
-        checkA11y(type, props);
 
         // Handle dangerouslySetInnerHTML (formatAttributes ignores the key)
         let innerHTML = null;

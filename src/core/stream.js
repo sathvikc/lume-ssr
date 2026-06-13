@@ -80,6 +80,27 @@ const SWAP_SCRIPT =
  * @param {object} [props]
  * @returns {ReadableStream<Uint8Array>}
  */
+/**
+ * Render a component into a web-standard Response with text/html headers.
+ * One line on any web-standard server (Workers, Deno, Bun, Hono, ...):
+ *
+ *   export default { fetch: (req) => htmlResponse(() => <Page url={req.url} />) };
+ *
+ * Streams Suspense boundaries automatically; sync trees arrive as one chunk.
+ *
+ * @param {function|any} component - Component function (or pre-rendered element)
+ * @param {object} [init] - ResponseInit, plus optional `props` for the component
+ * @returns {Response}
+ */
+export function htmlResponse(component, init = {}) {
+    const { props, ...responseInit } = init;
+    const headers = new Headers(responseInit.headers);
+    if (!headers.has('content-type')) {
+        headers.set('content-type', 'text/html; charset=utf-8');
+    }
+    return new Response(renderToStream(component, props), { ...responseInit, headers });
+}
+
 export function renderToStream(component, props = {}) {
     const boundaries = [];
     const prev = activeBoundaries;

@@ -31,7 +31,8 @@ Lume-SSR allows you to render your HTML on the server without buying into a mass
 - 🌊 **Streaming**: `renderToStream` + `<Suspense>` flush the shell first and stream async content out of order — via a web-standard `ReadableStream`.
 - ♿ **Accessible**: Opt-in render-time a11y warnings (missing `alt`, missing `lang`, positive `tabindex`, …).
 - 🔒 **Secure by default**: Escaping everywhere, attribute-name injection protection, safe state serialization for hydration.
-- 🎯 **Focused**: No built-in router. No data fetching layer. No magic.
+- 🔌 **Extendable**: Element plugins (`use()`) transform any element at render time — CSP nonces, class prefixing, custom lint rules. Same plugin/handler philosophy as Lume-JS. See [docs/extending.md](docs/extending.md).
+- 🎯 **Focused**: No built-in router. No data fetching layer. No magic. Routers and integrations are plain functions built on top.
 - 🧩 **Modular**: Compiles JSX to clean HTML strings. Pair it with **[Lume-JS](https://github.com/sathvikc/lume-js)** for interactivity, or **htmx**, or **Alpine**, or **Vanilla JS**.
 
 ## Installation
