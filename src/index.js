@@ -3,6 +3,8 @@
  */
 
 export { h, Fragment, renderChildren } from './core/jsx.js';
+export { renderToStream, Suspense } from './core/stream.js';
+export { enableA11yWarnings, disableA11yWarnings } from './core/a11y.js';
 export {
     renderToString,
     renderArray,

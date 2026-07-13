@@ -104,6 +104,29 @@ export function renderDocument(options?: {
 /** Mark a string as trusted HTML so it bypasses escaping. */
 export function raw(str: string | SafeString): SafeString;
 
+/**
+ * Render to a web-standard ReadableStream of UTF-8 bytes. Pass a component
+ * function so Suspense boundaries stream out of order; the shell flushes first.
+ */
+export function renderToStream<P>(
+    component: Component<P> | unknown,
+    props?: P
+): ReadableStream<Uint8Array>;
+
+/**
+ * Streams a fallback immediately and swaps in async content when it resolves.
+ * Transparent inside renderToString or when children are synchronous.
+ */
+export function Suspense(props: {
+    fallback?: Child;
+    children?: Child | Child[];
+    onError?: (err: unknown) => Child;
+}): Element;
+
+/** Enable render-time accessibility warnings (defaults to console.warn). */
+export function enableA11yWarnings(handler?: (message: string) => void): void;
+export function disableA11yWarnings(): void;
+
 export function escapeHtml(str: string): string;
 export function escapeHtml<T>(str: T): T;
 export function formatAttributes(props: Record<string, unknown>): string;

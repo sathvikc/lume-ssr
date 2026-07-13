@@ -1,0 +1,16 @@
+{
+  "name": "lume-ssr-bench",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bench": "node index.js"
+  },
+  "dependencies": {
+    "@kitajs/html": "^4.2.0",
+    "hono": "^4.6.0",
+    "preact": "^10.24.0",
+    "preact-render-to-string": "^6.5.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  }
+}

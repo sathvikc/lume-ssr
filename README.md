@@ -27,7 +27,10 @@ Lume-SSR allows you to render your HTML on the server without buying into a mass
 ## Features
 
 - 🏗 **Universal**: Runs in Node.js, Deno, Bun, Cloudflare Workers.
-- ⚡ **Fast**: Zero overhead abstraction. It's just function calls.
+- ⚡ **Fast**: On par with `preact-render-to-string`, ~6x faster than `react-dom/server` ([benchmarks](bench/README.md)).
+- 🌊 **Streaming**: `renderToStream` + `<Suspense>` flush the shell first and stream async content out of order — via a web-standard `ReadableStream`.
+- ♿ **Accessible**: Opt-in render-time a11y warnings (missing `alt`, missing `lang`, positive `tabindex`, …).
+- 🔒 **Secure by default**: Escaping everywhere, attribute-name injection protection, safe state serialization for hydration.
 - 🎯 **Focused**: No built-in router. No data fetching layer. No magic.
 - 🧩 **Modular**: Compiles JSX to clean HTML strings. Pair it with **[Lume-JS](https://github.com/sathvikc/lume-js)** for interactivity, or **htmx**, or **Alpine**, or **Vanilla JS**.
 

@@ -1,4 +1,5 @@
 import { formatAttributes, isSelfClosing, escapeHtml, SafeString } from './utils.js';
+import { checkA11y } from './a11y.js';
 
 // Tag names must look like real HTML/SVG/custom-element tags. Case is
 // preserved so SVG tags like <feGaussianBlur> render correctly.
@@ -9,17 +10,21 @@ const VALID_TAG_NAME = /^[a-zA-Z][a-zA-Z0-9-]*$/;
  * Strings are escaped; SafeStrings pass through; arrays render recursively.
  */
 function formatChild(child) {
-    if (child === null || child === undefined || typeof child === 'boolean') {
-        return '';
-    }
     if (child instanceof SafeString) {
-        return child.toString();
-    }
-    if (Array.isArray(child)) {
-        return child.map(formatChild).join('');
+        return child.str;
     }
     if (typeof child === 'string') {
         return escapeHtml(child);
+    }
+    if (child === null || child === undefined || typeof child === 'boolean') {
+        return '';
+    }
+    if (Array.isArray(child)) {
+        let out = '';
+        for (let i = 0; i < child.length; i++) {
+            out += formatChild(child[i]);
+        }
+        return out;
     }
     return escapeHtml(String(child));
 }
@@ -31,12 +36,23 @@ function formatChild(child) {
  * @returns {string|Promise<string>}
  */
 export function renderChildren(children) {
-    if (children.some(c => c instanceof Promise)) {
-        return Promise.all(children).then(resolved =>
-            resolved.map(formatChild).join('')
-        );
+    let out = '';
+    for (let i = 0; i < children.length; i++) {
+        const c = children[i];
+        if (c instanceof Promise) {
+            // Switch to the async path for the remaining children
+            const done = out;
+            return Promise.all(children.slice(i)).then(resolved => {
+                let rest = done;
+                for (let j = 0; j < resolved.length; j++) {
+                    rest += formatChild(resolved[j]);
+                }
+                return rest;
+            });
+        }
+        out += formatChild(c);
     }
-    return children.map(formatChild).join('');
+    return out;
 }
 
 /**
@@ -48,8 +64,15 @@ export function renderChildren(children) {
  * @returns {SafeString|Promise<SafeString>} HTML string wrapped in SafeString
  */
 export function h(type, props, ...children) {
-    // Flatten children and filter out null/undefined/boolean
-    const flattenedChildren = children.flat(Infinity).filter(c =>
+    // Flatten (only when needed) and filter out null/undefined/boolean
+    let flattenedChildren = children;
+    for (let i = 0; i < flattenedChildren.length; i++) {
+        if (Array.isArray(flattenedChildren[i])) {
+            flattenedChildren = children.flat(Infinity);
+            break;
+        }
+    }
+    flattenedChildren = flattenedChildren.filter(c =>
         c !== null && c !== undefined && c !== false && c !== true
     );
 
@@ -63,16 +86,15 @@ export function h(type, props, ...children) {
             throw new Error(`Invalid tag name: ${JSON.stringify(type)}`);
         }
 
-        let innerHTML = null;
-        const propsCopy = { ...props };
+        checkA11y(type, props);
 
-        // Handle dangerouslySetInnerHTML
-        if (propsCopy.dangerouslySetInnerHTML && propsCopy.dangerouslySetInnerHTML.__html) {
-            innerHTML = propsCopy.dangerouslySetInnerHTML.__html;
-            delete propsCopy.dangerouslySetInnerHTML;
+        // Handle dangerouslySetInnerHTML (formatAttributes ignores the key)
+        let innerHTML = null;
+        if (props && props.dangerouslySetInnerHTML && props.dangerouslySetInnerHTML.__html) {
+            innerHTML = props.dangerouslySetInnerHTML.__html;
         }
 
-        const attrs = formatAttributes(propsCopy);
+        const attrs = formatAttributes(props);
 
         // Handle self-closing (void) tags - children are not allowed
         if (isSelfClosing(type)) {
