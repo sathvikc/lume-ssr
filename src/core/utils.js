@@ -100,6 +100,24 @@ export function formatStyle(styleObj) {
 // `:class`, `x-on:click.prevent`) keep working.
 const VALID_ATTR_NAME = /^[a-zA-Z:@][a-zA-Z0-9:._@-]*$/;
 
+// Validated names are cached: real pages reuse a handful of attribute names
+// millions of times. Bounded so adversarial spread props can't grow it.
+const VALID_NAME_CACHE = new Set();
+const VALID_NAME_CACHE_MAX = 1000;
+
+function isValidAttrName(key) {
+    if (VALID_NAME_CACHE.has(key)) {
+        return true;
+    }
+    if (!VALID_ATTR_NAME.test(key)) {
+        return false;
+    }
+    if (VALID_NAME_CACHE.size < VALID_NAME_CACHE_MAX) {
+        VALID_NAME_CACHE.add(key);
+    }
+    return true;
+}
+
 // Enumerated attributes take literal "true"/"false" values; a bare attribute
 // name (the boolean-attribute shorthand) is invalid for these.
 const ENUMERATED_ATTRS = new Set(['draggable', 'spellcheck', 'contenteditable']);
@@ -123,7 +141,7 @@ export function formatAttributes(props) {
         }
 
         // Drop attribute names that could break out of the tag
-        if (!VALID_ATTR_NAME.test(key)) {
+        if (!isValidAttrName(key)) {
             continue;
         }
 
