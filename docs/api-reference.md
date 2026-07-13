@@ -73,6 +73,52 @@ Renders a component to an HTML string.
 - `props`: Props object (optional, used when `component` is a function).
 - **Returns**: `string` (if sync) or `Promise<string>` (if async) — just `await` it.
 
+## `renderToStream(component, props)`
+
+Renders to a web-standard `ReadableStream<Uint8Array>` — works with
+`new Response(stream)` (Workers, Deno, Bun) and `Readable.fromWeb(stream)`
+(Node). Pass a component **function** so `Suspense` boundaries can register
+with the render:
+
+```javascript
+import { renderToStream, Suspense } from 'lume-ssr';
+
+app.get('/', (req, res) => {
+  const stream = renderToStream(() => <Page />);
+  Readable.fromWeb(stream).pipe(res);
+});
+```
+
+## `Suspense`
+
+Streams a fallback immediately; the resolved content follows as it becomes
+ready (out-of-order streaming, no client runtime beyond a tiny inline swap
+script).
+
+```jsx
+<Suspense fallback={<p>Loading…</p>} onError={(err) => <p>Failed</p>}>
+  <SlowComponent />
+</Suspense>
+```
+
+- Inside `renderToString` (or with fully sync children) it is transparent —
+  content renders in place.
+- Without `onError`, a failed boundary keeps its fallback and the error is
+  logged.
+- The fallback must be synchronous.
+
+## `enableA11yWarnings(handler?)` / `disableA11yWarnings()`
+
+Opt-in render-time accessibility checks (zero cost when disabled). Warns on:
+`<img>` without `alt`, `<iframe>` without `title`, `<html>` without `lang`,
+`<a>` without `href`, positive `tabindex`, and click handlers on
+non-interactive `<div>`/`<span>`.
+
+```javascript
+import { enableA11yWarnings } from 'lume-ssr';
+if (process.env.NODE_ENV !== 'production') enableA11yWarnings();
+```
+
 ## `renderArray(items, renderFn)`
 
 Renders an array of items and joins the result.
