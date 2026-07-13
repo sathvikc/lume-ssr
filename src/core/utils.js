@@ -8,6 +8,18 @@ export class SafeString {
 }
 
 /**
+ * Mark a string as trusted HTML so it bypasses escaping.
+ * Only use with HTML you control - never with user input.
+ * @param {string} str
+ * @returns {SafeString}
+ */
+export function raw(str) {
+    return str instanceof SafeString ? str : new SafeString(String(str));
+}
+
+const ESCAPE_TEST = /[&<>"']/;
+
+/**
  * Escape HTML entities to prevent XSS
  * @param {string} str
  * @returns {string}
@@ -17,6 +29,9 @@ export function escapeHtml(str) {
         return str.toString();
     }
     if (typeof str !== 'string') {
+        return str;
+    }
+    if (!ESCAPE_TEST.test(str)) {
         return str;
     }
     return str
@@ -67,6 +82,16 @@ export function formatStyle(styleObj) {
         .join('; ');
 }
 
+// Attribute names must not contain characters that can break out of the tag
+// (whitespace, quotes, =, >, /) - those are an injection vector via spread
+// props. `@` and `:` are allowed so Alpine/Vue-style shorthands (`@click`,
+// `:class`, `x-on:click.prevent`) keep working.
+const VALID_ATTR_NAME = /^[a-zA-Z:@][a-zA-Z0-9:._@-]*$/;
+
+// Enumerated attributes take literal "true"/"false" values; a bare attribute
+// name (the boolean-attribute shorthand) is invalid for these.
+const ENUMERATED_ATTRS = new Set(['draggable', 'spellcheck', 'contenteditable']);
+
 /**
  * Format props object to HTML attributes string
  * @param {object} props
@@ -82,6 +107,11 @@ export function formatAttributes(props) {
     for (const [key, value] of Object.entries(props)) {
         // Skip children, key, ref
         if (key === 'children' || key === 'key' || key === 'ref') {
+            continue;
+        }
+
+        // Drop attribute names that could break out of the tag
+        if (!VALID_ATTR_NAME.test(key)) {
             continue;
         }
 
@@ -107,10 +137,13 @@ export function formatAttributes(props) {
         }
 
         // Handle boolean attributes
-        // If true, include attribute name only (e.g. disabled)
-        // If false, omit attribute
+        // ARIA and enumerated attributes need explicit "true"/"false" values
+        // (a bare `aria-hidden` or `draggable` is invalid HTML).
+        // Other booleans use the shorthand: present if true, omitted if false.
         if (typeof value === 'boolean') {
-            if (value) {
+            if (key.startsWith('aria-') || ENUMERATED_ATTRS.has(key)) {
+                attributes.push(`${key}="${value}"`);
+            } else if (value) {
                 attributes.push(key);
             }
             continue;
