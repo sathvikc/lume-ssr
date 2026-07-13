@@ -127,6 +127,35 @@ export function Suspense(props: {
 export function enableA11yWarnings(handler?: (message: string) => void): void;
 export function disableA11yWarnings(): void;
 
+/** An element plugin: inspect or transform every HTML element at render time. */
+export interface Plugin {
+    name: string;
+    element?(
+        tag: string,
+        props: Record<string, unknown> | null,
+        children: Child[]
+    ): void | {
+        tag?: string;
+        props?: Record<string, unknown>;
+        children?: Child[];
+    };
+}
+
+/** Register a plugin. Returns a function that unregisters it. */
+export function use(plugin: Plugin): () => void;
+
+/** Unregister a plugin by name. */
+export function unuse(name: string): void;
+
+/**
+ * Render a component into a web-standard Response with text/html headers.
+ * Streams Suspense boundaries automatically.
+ */
+export function htmlResponse<P>(
+    component: Component<P> | unknown,
+    init?: ResponseInit & { props?: P }
+): Response;
+
 export function escapeHtml(str: string): string;
 export function escapeHtml<T>(str: T): T;
 export function formatAttributes(props: Record<string, unknown>): string;
