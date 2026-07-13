@@ -123,9 +123,19 @@ const html = renderToString(<Page />);
 fs.writeFileSync('dist/index.html', html);
 ```
 
+## Documentation
+
+- [API Reference](docs/api-reference.md) — every export, with the security behavior spelled out
+- [Extending Lume-SSR](docs/extending.md) — plugins, composition, any-server output
+- [Client-Side Hydration](docs/client-hydration.md) — pairing with Lume-JS, Alpine, or vanilla JS
+- [Vision](docs/design/VISION.md) — what this is, who it's for, what it refuses to become
+- [Design Decisions](docs/design/DESIGN_DECISIONS.md) — why things are the way they are
+- [Security Policy](SECURITY.md) — the escaping model, its red lines, how to report issues
+- [Benchmarks](bench/README.md)
+
 ## Contributing
 
-We welcome contributions that align with the philosophy: **Keep it simple. Use the platform.**
+We welcome contributions that align with the philosophy: **Keep it simple. Use the platform.** See [CONTRIBUTING.md](CONTRIBUTING.md) — including the list of changes we will decline (anything that weakens the security model tops it). AI agents: start at [AGENTS.md](AGENTS.md).
 
 ## License
 
