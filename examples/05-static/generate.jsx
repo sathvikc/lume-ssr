@@ -118,7 +118,7 @@ if (!fs.existsSync(outDir)) {
 // Generate each page
 pages.forEach(page => {
     const html = renderToString(<Page title={page.title} content={page.content} />);
-    fs.writeFileSync(path.join(outDir, page.name), html);
+    fs.writeFileSync(path.join(outDir, page.name), `<!DOCTYPE html>\n${html}`);
     console.log(`✓ Generated ${page.name}`);
 });
 

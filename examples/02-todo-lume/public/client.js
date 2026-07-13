@@ -1,8 +1,8 @@
 // Import Lume from CDN using ES modules
 import { state, bindDom } from 'https://cdn.jsdelivr.net/npm/lume-js/src/index.js';
 
-// Create reactive store from server state
-const initialState = window.__STATE__;
+// Create reactive store from server state (emitted by serializeState())
+const initialState = JSON.parse(document.getElementById('__lume_state__').textContent);
 const store = state({
     todos: initialState.todos || [],
     newTodo: initialState.newTodo || ''

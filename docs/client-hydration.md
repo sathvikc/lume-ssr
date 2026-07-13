@@ -2,28 +2,42 @@
 
 Lume-SSR renders static HTML strings. To add interactivity, you can "hydrate" the HTML on the client side using any library.
 
-## Using Lume.js
+## Passing state from server to client
 
-Pass the initial state from the server to the client:
+Use `serializeState()` to embed state safely. It emits a `<script type="application/json">` tag and escapes `<` inside the payload, so user data containing `</script>` cannot break out of the tag:
 
 ```javascript
 // Server
+import { renderToString, serializeState } from 'lume-ssr';
+
 const html = renderToString(<App />);
-res.send(`
+res.send(`<!DOCTYPE html>
   ${html}
-  <script>window.__STATE__ = ${JSON.stringify(state)};</script>
+  ${serializeState(state)}
   <script type="module" src="/client.js"></script>
 `);
 ```
+
+> ⚠️ Avoid the common `window.__STATE__ = ${JSON.stringify(state)}` pattern inside a
+> `<script>` tag — if any state value contains `</script>`, it becomes an XSS hole.
+> `serializeState()` exists so you never have to think about this.
+
+## Using Lume.js
 
 Hydrate on the client:
 
 ```javascript
 // Client
 import { state, bindDom } from 'lume-js';
-const store = state(window.__STATE__);
+
+const initial = JSON.parse(document.getElementById('__lume_state__').textContent);
+const store = state(initial);
 bindDom(document.body, store);
 ```
+
+Because lume-js binds through `data-*` attributes, there is no tree reconciliation:
+the server HTML doesn't need to match a client render, so hydration mismatches
+cannot happen.
 
 ## Using Alpine.js
 
@@ -33,7 +47,7 @@ Embed Alpine.js directives directly in your JSX:
 const Counter = () => (
   <div x-data="{ count: 0 }">
     <span x-text="count"></span>
-    <button @click="count++">Increment</button>
+    <button {...{ '@click': 'count++' }}>Increment</button>
   </div>
 );
 ```
