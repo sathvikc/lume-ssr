@@ -31,9 +31,17 @@
 
 ## 📂 Project Structure Understanding
 
-- **`src/core/jsx.js`**: The compiler. It translates `h()` calls to `SafeString`. 
-- **`src/core/render.js`**: The API. `renderToString()`.
-- **`src/core/utils.js`**: Universal helpers. No dependencies allowed here.
+> Canonical agent guide (commands, hard rules, sharp edges): **`/AGENTS.md`**
+
+- **`src/core/jsx.js`**: The renderer. Translates `h()` calls to `SafeString`.
+- **`src/core/render.js`**: `renderToString()`, `renderDocument()`, `serializeState()`.
+- **`src/core/stream.js`**: `renderToStream()`, `Suspense`, `htmlResponse()`.
+- **`src/core/plugins.js`**: `use()`/`unuse()` element plugin system.
+- **`src/core/a11y.js`**: Opt-in a11y warnings (implemented as a plugin).
+- **`src/core/utils.js`**: `escapeHtml`, `formatAttributes`, `SafeString`, `raw`. No dependencies allowed here.
+- **`src/jsx-runtime.js`**: Automatic JSX runtime (`jsxImportSource: "lume-ssr"`).
+- **`types/`**: Hand-written declarations — keep in sync with `src/`.
+- **`test/`**: `node:test` suites — every behavior change needs coverage.
 
 ---
 
