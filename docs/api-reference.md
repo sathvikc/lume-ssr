@@ -107,6 +107,36 @@ script).
   logged.
 - The fallback must be synchronous.
 
+## `htmlResponse(component, init?)`
+
+Renders into a web-standard `Response` with `text/html; charset=utf-8`
+headers — one line on Workers, Deno, Bun, Hono. Streams Suspense boundaries
+automatically. `init` accepts everything `ResponseInit` does, plus `props`.
+
+```javascript
+export default {
+  fetch: (req) => htmlResponse(Page, { props: { url: req.url } })
+};
+```
+
+## `use(plugin)` / `unuse(name)`
+
+Register an element plugin — inspect or transform every HTML element at
+render time. Returns an unregister function. See
+[docs/extending.md](extending.md) for the full contract and recipes.
+
+```javascript
+use({
+  name: 'csp-nonce',
+  element(tag, props) {
+    if (tag === 'script') return { props: { ...props, nonce } };
+  }
+});
+```
+
+Replaced tags are still validated and replaced props still escaped — plugins
+cannot bypass the security model.
+
 ## `enableA11yWarnings(handler?)` / `disableA11yWarnings()`
 
 Opt-in render-time accessibility checks (zero cost when disabled). Warns on:
